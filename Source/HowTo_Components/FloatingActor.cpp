@@ -4,6 +4,8 @@
 #include "FloatingActor.h"
 #include "UObject/UObjectGlobals.h"
 
+#include "kinit.h"
+
 // Sets default values
 AFloatingActor::AFloatingActor()
 {
@@ -24,6 +26,8 @@ AFloatingActor::AFloatingActor()
         VisualMesh->SetStaticMesh(CubeVisualAsset.Object);
         VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
     }
+
+    // k_init();
 }
 
 // Called when the game starts or when spawned
