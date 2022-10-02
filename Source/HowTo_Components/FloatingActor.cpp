@@ -1,10 +1,41 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "FloatingActor.h"
 #include "UObject/UObjectGlobals.h"
 
-#include "kinit.h"
+#include <string>
+//#include "sexp.h"
+#include "kembed.h"
+
+float SetLocation_delegate(AFloatingActor *kactor, float x, float y, float z)
+{
+  return kactor->SetLocation(x, y, z);
+}
+
+sexp SetLocation_delegate_sexp_native(sexp arglist)
+{
+  sexp kactors, xs, ys, zs;
+  printf("HEYHEY\n");
+  KESD(arglist);
+  kactors = car(arglist);
+  xs = cadr(arglist);
+  ys = caddr(arglist);
+  zs = caddr(cdr(arglist));
+
+  AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactors);
+  sexp x = SEXP_GET_INTEGER(xs);
+  sexp y = SEXP_GET_INTEGER(ys);
+  sexp z = SEXP_GET_INTEGER(zs);
+  float n = SetLocation_delegate(kactor, (float)x, (float)y, (float)z);
+  sexp ns = SEXP_MKINT((int)n);
+  return ns;
+}
+
+float AFloatingActor::SetLocation(float x, float y, float z)
+{
+  printf("SetLocation %f %f %f\n", x, y, z);
+  return x + y + z;
+}
 
 // Sets default values
 AFloatingActor::AFloatingActor()
@@ -27,7 +58,21 @@ AFloatingActor::AFloatingActor()
         VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
     }
 
-    // k_init();
+    /*
+    ke_init();
+
+    sexp super_class = ke_exec_file("super.k");
+    KESD(super_class);
+    sexp kthis = SEXP_MKOBJ(this);
+    sexp SetLocation_delegate_sexp =
+      mknative(&SetLocation_delegate_sexp_native, strdup("SetLocation_delegate_sexp_native"));
+    sexp super = ke_call_constructor(super_class,
+        cons(kthis, cons(SetLocation_delegate_sexp, nill)));
+
+    sexp clas = ke_exec_file("kactor.k");
+    kdelegate = ke_call_constructor(clas, cons(super, nill));
+    //UE_LOG(LogTemp, Warning, TEXT("DELEGATE %lp"), kdelegate);
+     */
 }
 
 // Called when the game starts or when spawned

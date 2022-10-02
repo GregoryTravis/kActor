@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "kembed.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "FloatingActor.generated.h"
@@ -24,6 +25,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+    float SetLocation(float x, float y, float z);
     
     //UFUNCTION(BlueprintCallable)
     //virtual void SALAR();
@@ -31,4 +33,6 @@ public:
 // private: ?
     UPROPERTY()
     float heightScale;
+    
+    sexp kdelegate;
 };
