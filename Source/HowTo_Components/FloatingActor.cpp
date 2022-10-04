@@ -33,8 +33,17 @@ sexp SetLocation_delegate_sexp_native(sexp arglist)
 
 float AFloatingActor::SetLocation(float x, float y, float z)
 {
-  printf("SetLocation %f %f %f\n", x, y, z);
+    UE_LOG(LogTemp, Warning, TEXT("AAA SetLocation %f %f %f\n"), x, y, z);
   return x + y + z;
+}
+
+float AFloatingActor::NuTick(float DeltaTime)
+{
+  sexp result = ke_call_method(kdelegate, "tick", cons(SEXP_MKINT((int)DeltaTime), nill));
+  float f = (float)SEXP_GET_INTEGER(result);
+  KESD(result);
+    UE_LOG(LogTemp, Warning, TEXT("AAA NuTick result %f %d %lx %f\n"), DeltaTime, (int)DeltaTime, result, f);
+  return f;
 }
 
 // Sets default values
@@ -58,10 +67,10 @@ AFloatingActor::AFloatingActor()
         VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
     }
 
-    /*
     ke_init();
 
-    sexp super_class = ke_exec_file("super.k");
+    sexp super_class = ke_exec_file("/Users/gmt/proj/kinterp/super.k");
+    UE_LOG(LogTemp, Warning, TEXT("AAA SUPER %lx\n"), super_class);
     KESD(super_class);
     sexp kthis = SEXP_MKOBJ(this);
     sexp SetLocation_delegate_sexp =
@@ -69,10 +78,10 @@ AFloatingActor::AFloatingActor()
     sexp super = ke_call_constructor(super_class,
         cons(kthis, cons(SetLocation_delegate_sexp, nill)));
 
-    sexp clas = ke_exec_file("kactor.k");
+    sexp clas = ke_exec_file("/Users/gmt/proj/kinterp/kactor.k");
+    UE_LOG(LogTemp, Warning, TEXT("AAA CLAS %lx\n"), clas);
     kdelegate = ke_call_constructor(clas, cons(super, nill));
     //UE_LOG(LogTemp, Warning, TEXT("DELEGATE %lp"), kdelegate);
-     */
 }
 
 // Called when the game starts or when spawned
@@ -92,6 +101,8 @@ void AFloatingActor::SALAR()
 void AFloatingActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+    NuTick(DeltaTime);
     
     FVector NewLocation = GetActorLocation();
     FRotator NewRotation = GetActorRotation();

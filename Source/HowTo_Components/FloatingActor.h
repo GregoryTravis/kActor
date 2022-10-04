@@ -27,6 +27,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
     float SetLocation(float x, float y, float z);
     
+    float NuTick(float DeltaTime);
+
     //UFUNCTION(BlueprintCallable)
     //virtual void SALAR();
     
