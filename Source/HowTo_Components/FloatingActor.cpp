@@ -69,7 +69,7 @@ sexp GetGameTimeSinceCreation_delegate_sexp_native(sexp arglist)
 sexp GetActorRotation_delegate_sexp_native(sexp arglist)
 {
     A(length(arglist) == 1);
-    
+
     sexp kactor_sexp = car(arglist);
     AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
     FRotator rotation = kactor->GetActorRotation();
@@ -79,7 +79,7 @@ sexp GetActorRotation_delegate_sexp_native(sexp arglist)
 sexp GetActorLocation_delegate_sexp_native(sexp arglist)
 {
     A(length(arglist) == 1);
-    
+
     sexp kactor_sexp = car(arglist);
     AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
     FVector location = kactor->GetActorLocation();
@@ -89,7 +89,7 @@ sexp GetActorLocation_delegate_sexp_native(sexp arglist)
 sexp SetActorLocationAndRotation_delegate_sexp_native(sexp arglist)
 {
     A(length(arglist) == 3);
-    
+
     sexp kactor_sexp = car(arglist);
     sexp location = cadr(arglist);
     sexp rotation = caddr(arglist);
@@ -105,28 +105,28 @@ AFloatingActor::AFloatingActor()
 {
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
-    
+
     this->heightScale = 20.0;
-    
+
     VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
     VisualMesh->SetupAttachment(RootComponent);
-    
+
     static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeVisualAsset(TEXT("/Game/StarterContent/Shapes/Shape_Cube.Shape_Cube"));
-    
+
     UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), ( CubeVisualAsset.Succeeded() ? TEXT("true") : TEXT("false") ));
-    
+
     if (CubeVisualAsset.Succeeded())
     {
         VisualMesh->SetStaticMesh(CubeVisualAsset.Object);
         VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
     }
-    
+
     ke_init();
-    
+
     sexp super_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("super.k")));
     KESD(super_class);
     sexp kthis = SEXP_MKOBJ(this);
-    
+
     sexp GetActorLocation_delegate_sexp =
     mknative(&GetActorLocation_delegate_sexp_native, strdup("GetActorLocation_delegate_sexp_native"));
     sexp GetActorRotation_delegate_sexp =
@@ -143,7 +143,7 @@ AFloatingActor::AFloatingActor()
                                         GetActorRotation_delegate_sexp,
                                         SetActorLocationAndRotation_delegate_sexp,
                                         GetGameTimeSinceCreation_delegate_sexp));
-    
+
     sexp clas = ke_exec_file(TCHAR_TO_ANSI(*FindSource("kactor.k")));
     kdelegate = ke_call_constructor(clas, L1(super));
     fvector_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("fvector.k")));
@@ -154,7 +154,7 @@ AFloatingActor::AFloatingActor()
 void AFloatingActor::BeginPlay()
 {
     Super::BeginPlay();
-    
+
 }
 
 // Called every frame
@@ -162,7 +162,7 @@ void AFloatingActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     NuTick(DeltaTime);
-    
+
 }
 
 FString AFloatingActor::FindSource(FString filename)
