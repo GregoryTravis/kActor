@@ -9,10 +9,10 @@
 
 float AFloatingActor::NuTick(float DeltaTime)
 {
-  sexp result = ke_call_method(kdelegate, "tick", cons(SEXP_MKINT((int)DeltaTime), nill));
-  float f = (float)SEXP_GET_INTEGER(result);
+  sexp result = ke_call_method(kdelegate, "tick", cons(SEXP_MKFLOAT(DeltaTime), nill));
+  float f = SEXP_GET_FLOAT(result);
   KESD(result);
-    UE_LOG(LogTemp, Warning, TEXT("AAA NuTick result %f %d %lx %f\n"), DeltaTime, (int)DeltaTime, result, f);
+    UE_LOG(LogTemp, Warning, TEXT("AAA NuTick result %f %d %lx %f %lx\n"), DeltaTime, (int)DeltaTime, result, f, SEXP_MKFLOAT(DeltaTime));
   return f;
 }
 
@@ -41,18 +41,18 @@ bool AFloatingActor::SetActorLocationAndRotation(FVector fv, FRotator fr)
 sexp FVector_to_fvector(AFloatingActor *kactor, FVector fv)
 {
   sexp r = ke_call_constructor(kactor->fvector_class,
-    L3(SEXP_MKINT((int)fv.X),
-       SEXP_MKINT((int)fv.Y),
-       SEXP_MKINT((int)fv.Z)));
+                               L3(SEXP_MKFLOAT(fv.X),
+                                  SEXP_MKFLOAT(fv.Y),
+                                  SEXP_MKFLOAT(fv.Z)));
   return r;
 }
 
 sexp FRotator_to_frotator(AFloatingActor *kactor, FRotator fr)
 {
   return ke_call_constructor(kactor->frotator_class,
-    L3(SEXP_MKINT((int)fr.Pitch),
-       SEXP_MKINT((int)fr.Roll),
-       SEXP_MKINT((int)fr.Yaw)));
+                             L3(SEXP_MKFLOAT(fr.Pitch),
+                                SEXP_MKFLOAT(fr.Roll),
+                                SEXP_MKFLOAT(fr.Yaw)));
 }
 
 FVector fvector_to_FVector(sexp fvector)
@@ -68,9 +68,9 @@ FVector fvector_to_FVector(sexp fvector)
   };
    */
     FVector fv;
-    fv.X = (float)SEXP_GET_INTEGER(x);
-    fv.Y = (float)SEXP_GET_INTEGER(y);
-    fv.Z = (float)SEXP_GET_INTEGER(z);
+    fv.X = SEXP_GET_FLOAT(x);
+    fv.Y = SEXP_GET_FLOAT(y);
+    fv.Z = SEXP_GET_FLOAT(z);
   return fv;
 }
 
@@ -85,9 +85,9 @@ FRotator frotator_to_FRotator(sexp frotator)
     (float)SEXP_GET_INTEGER(yaw)
   };*/
     FRotator fr;
-    fr.Pitch = (float)SEXP_GET_INTEGER(pitch);
-    fr.Roll = (float)SEXP_GET_INTEGER(roll);
-    fr.Yaw = (float)SEXP_GET_INTEGER(yaw);
+    fr.Pitch = SEXP_GET_FLOAT(pitch);
+    fr.Roll = SEXP_GET_FLOAT(roll);
+    fr.Yaw = SEXP_GET_FLOAT(yaw);
   return fr;
 }
 
