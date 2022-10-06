@@ -7,45 +7,85 @@
 #include <string>
 #include "kembed.h"
 
-sexp FVector_to_fvector(AFloatingActor *kactor, FVector fv)
+// Forward decls
+sexp GetGameTimeSinceCreation_delegate_sexp_native(sexp arglist);
+sexp GetActorRotation_delegate_sexp_native(sexp arglist);
+sexp GetActorLocation_delegate_sexp_native(sexp arglist);
+sexp SetActorLocationAndRotation_delegate_sexp_native(sexp arglist);
+sexp FVector_to_fvector(AFloatingActor *kactor, FVector fv);
+sexp FRotator_to_frotator(AFloatingActor *kactor, FRotator fr);
+FVector fvector_to_FVector(sexp fvector);
+FRotator frotator_to_FRotator(sexp frotator);
+
+// Sets up Mesh
+// Initialize bridge between C++ and K.
+AFloatingActor::AFloatingActor()
 {
-    sexp r = ke_call_constructor(kactor->fvector_class,
-                                 L3(SEXP_MKFLOAT(fv.X),
-                                    SEXP_MKFLOAT(fv.Y),
-                                    SEXP_MKFLOAT(fv.Z)));
-    return r;
+    // Standard actor setup
+    PrimaryActorTick.bCanEverTick = true;
+
+    this->heightScale = 20.0;
+
+    VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+    VisualMesh->SetupAttachment(RootComponent);
+
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeVisualAsset(TEXT("/Game/StarterContent/Shapes/Shape_Cube.Shape_Cube"));
+
+    UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), ( CubeVisualAsset.Succeeded() ? TEXT("true") : TEXT("false") ));
+
+    if (CubeVisualAsset.Succeeded())
+    {
+        VisualMesh->SetStaticMesh(CubeVisualAsset.Object);
+        VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+    }
+
+    // Set up bridge between C++ and K.
+    ke_init();
+
+    // Create K superclass
+    sexp super_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("super.k")));
+    KESD(super_class);
+    sexp kthis = SEXP_MKOBJ(this);
+
+    // Create superclass delegates that allow K to call back to C++
+    sexp GetActorLocation_delegate_sexp =
+    mknative(&GetActorLocation_delegate_sexp_native, strdup("GetActorLocation_delegate_sexp_native"));
+    sexp GetActorRotation_delegate_sexp =
+    mknative(&GetActorRotation_delegate_sexp_native, strdup("GetActorRotation_delegate_sexp_native"));
+    sexp SetActorLocationAndRotation_delegate_sexp =
+    mknative(&SetActorLocationAndRotation_delegate_sexp_native,
+             strdup("SetActorLocationAndRotation_delegate_sexp_native"));
+    sexp GetGameTimeSinceCreation_delegate_sexp =
+    mknative(&GetGameTimeSinceCreation_delegate_sexp_native,
+             strdup("GetGameTimeSinceCreation_delegate_sexp_native"));
+    sexp super = ke_call_constructor(super_class,
+                                     L5(kthis,
+                                        GetActorLocation_delegate_sexp,
+                                        GetActorRotation_delegate_sexp,
+                                        SetActorLocationAndRotation_delegate_sexp,
+                                        GetGameTimeSinceCreation_delegate_sexp));
+
+    // Set up 'kactor', the K implementation of this class
+    sexp clas = ke_exec_file(TCHAR_TO_ANSI(*FindSource("kactor.k")));
+    kdelegate = ke_call_constructor(clas, L1(super));
+    
+    // Set up utility classes
+    fvector_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("fvector.k")));
+    frotator_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("frotator.k")));
 }
 
-sexp FRotator_to_frotator(AFloatingActor *kactor, FRotator fr)
+// Called when the game starts or when spawned
+void AFloatingActor::BeginPlay()
 {
-    return ke_call_constructor(kactor->frotator_class,
-                               L3(SEXP_MKFLOAT(fr.Pitch),
-                                  SEXP_MKFLOAT(fr.Roll),
-                                  SEXP_MKFLOAT(fr.Yaw)));
+    Super::BeginPlay();
+
 }
 
-FVector fvector_to_FVector(sexp fvector)
+// Called every frame
+void AFloatingActor::Tick(float DeltaTime)
 {
-    sexp x = ke_get_field(fvector, "x");
-    sexp y = ke_get_field(fvector, "y");
-    sexp z = ke_get_field(fvector, "z");
-    FVector fv;
-    fv.X = SEXP_GET_FLOAT(x);
-    fv.Y = SEXP_GET_FLOAT(y);
-    fv.Z = SEXP_GET_FLOAT(z);
-    return fv;
-}
-
-FRotator frotator_to_FRotator(sexp frotator)
-{
-    sexp pitch = ke_get_field(frotator, "pitch");
-    sexp roll = ke_get_field(frotator, "roll");
-    sexp yaw = ke_get_field(frotator, "yaw");
-    FRotator fr;
-    fr.Pitch = SEXP_GET_FLOAT(pitch);
-    fr.Roll = SEXP_GET_FLOAT(roll);
-    fr.Yaw = SEXP_GET_FLOAT(yaw);
-    return fr;
+    Super::Tick(DeltaTime);
+    ke_call_method(kdelegate, "tick", cons(SEXP_MKFLOAT(DeltaTime), nill));
 }
 
 sexp GetGameTimeSinceCreation_delegate_sexp_native(sexp arglist)
@@ -93,70 +133,52 @@ sexp SetActorLocationAndRotation_delegate_sexp_native(sexp arglist)
     return b_sexp;
 }
 
-// Sets default values
-AFloatingActor::AFloatingActor()
+// Utility to convert FVectors between C++ and K representations
+sexp FVector_to_fvector(AFloatingActor *kactor, FVector fv)
 {
-    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-    PrimaryActorTick.bCanEverTick = true;
-
-    this->heightScale = 20.0;
-
-    VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-    VisualMesh->SetupAttachment(RootComponent);
-
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeVisualAsset(TEXT("/Game/StarterContent/Shapes/Shape_Cube.Shape_Cube"));
-
-    UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), ( CubeVisualAsset.Succeeded() ? TEXT("true") : TEXT("false") ));
-
-    if (CubeVisualAsset.Succeeded())
-    {
-        VisualMesh->SetStaticMesh(CubeVisualAsset.Object);
-        VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-    }
-
-    ke_init();
-
-    sexp super_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("super.k")));
-    KESD(super_class);
-    sexp kthis = SEXP_MKOBJ(this);
-
-    sexp GetActorLocation_delegate_sexp =
-    mknative(&GetActorLocation_delegate_sexp_native, strdup("GetActorLocation_delegate_sexp_native"));
-    sexp GetActorRotation_delegate_sexp =
-    mknative(&GetActorRotation_delegate_sexp_native, strdup("GetActorRotation_delegate_sexp_native"));
-    sexp SetActorLocationAndRotation_delegate_sexp =
-    mknative(&SetActorLocationAndRotation_delegate_sexp_native,
-             strdup("SetActorLocationAndRotation_delegate_sexp_native"));
-    sexp GetGameTimeSinceCreation_delegate_sexp =
-    mknative(&GetGameTimeSinceCreation_delegate_sexp_native,
-             strdup("GetGameTimeSinceCreation_delegate_sexp_native"));
-    sexp super = ke_call_constructor(super_class,
-                                     L5(kthis,
-                                        GetActorLocation_delegate_sexp,
-                                        GetActorRotation_delegate_sexp,
-                                        SetActorLocationAndRotation_delegate_sexp,
-                                        GetGameTimeSinceCreation_delegate_sexp));
-
-    sexp clas = ke_exec_file(TCHAR_TO_ANSI(*FindSource("kactor.k")));
-    kdelegate = ke_call_constructor(clas, L1(super));
-    fvector_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("fvector.k")));
-    frotator_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("frotator.k")));
+    sexp r = ke_call_constructor(kactor->fvector_class,
+                                 L3(SEXP_MKFLOAT(fv.X),
+                                    SEXP_MKFLOAT(fv.Y),
+                                    SEXP_MKFLOAT(fv.Z)));
+    return r;
 }
 
-// Called when the game starts or when spawned
-void AFloatingActor::BeginPlay()
+// Utility to convert FVectors between C++ and K representations
+sexp FRotator_to_frotator(AFloatingActor *kactor, FRotator fr)
 {
-    Super::BeginPlay();
-
+    return ke_call_constructor(kactor->frotator_class,
+                               L3(SEXP_MKFLOAT(fr.Pitch),
+                                  SEXP_MKFLOAT(fr.Roll),
+                                  SEXP_MKFLOAT(fr.Yaw)));
 }
 
-// Called every frame
-void AFloatingActor::Tick(float DeltaTime)
+// Utility to convert FVectors between C++ and K representations
+FVector fvector_to_FVector(sexp fvector)
 {
-    Super::Tick(DeltaTime);
-    ke_call_method(kdelegate, "tick", cons(SEXP_MKFLOAT(DeltaTime), nill));
+    sexp x = ke_get_field(fvector, "x");
+    sexp y = ke_get_field(fvector, "y");
+    sexp z = ke_get_field(fvector, "z");
+    FVector fv;
+    fv.X = SEXP_GET_FLOAT(x);
+    fv.Y = SEXP_GET_FLOAT(y);
+    fv.Z = SEXP_GET_FLOAT(z);
+    return fv;
 }
 
+// Utility to convert FVectors between C++ and K representations
+FRotator frotator_to_FRotator(sexp frotator)
+{
+    sexp pitch = ke_get_field(frotator, "pitch");
+    sexp roll = ke_get_field(frotator, "roll");
+    sexp yaw = ke_get_field(frotator, "yaw");
+    FRotator fr;
+    fr.Pitch = SEXP_GET_FLOAT(pitch);
+    fr.Roll = SEXP_GET_FLOAT(roll);
+    fr.Yaw = SEXP_GET_FLOAT(yaw);
+    return fr;
+}
+
+// Get path to K source file
 FString AFloatingActor::FindSource(FString filename)
 {
     FString p = FPaths::Combine(FPaths::ProjectContentDir(), "k", filename);
