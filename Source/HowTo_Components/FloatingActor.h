@@ -22,6 +22,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+    FString FindSource(FString filename);
+    
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

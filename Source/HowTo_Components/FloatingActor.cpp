@@ -2,6 +2,7 @@
 
 #include "FloatingActor.h"
 #include "UObject/UObjectGlobals.h"
+#include "Misc/Paths.h"
 
 #include <string>
 //#include "sexp.h"
@@ -159,7 +160,7 @@ AFloatingActor::AFloatingActor()
 
     ke_init();
 
-    sexp super_class = ke_exec_file("/Users/gmt/proj/kinterp/super.k");
+    sexp super_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("super.k")));
     KESD(super_class);
     sexp kthis = SEXP_MKOBJ(this);
 
@@ -180,10 +181,10 @@ AFloatingActor::AFloatingActor()
            SetActorLocationAndRotation_delegate_sexp,
            GetGameTimeSinceCreation_delegate_sexp));
 
-    sexp clas = ke_exec_file("/Users/gmt/proj/kinterp/kactor.k");
+    sexp clas = ke_exec_file(TCHAR_TO_ANSI(*FindSource("kactor.k")));
     kdelegate = ke_call_constructor(clas, L1(super));
-    fvector_class = ke_exec_file("/Users/gmt/proj/kinterp/fvector.k");
-    frotator_class = ke_exec_file("/Users/gmt/proj/kinterp/frotator.k");
+    fvector_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("fvector.k")));
+    frotator_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("frotator.k")));
     /*
      */
 }
@@ -306,3 +307,11 @@ void AFloatingActor::Tick(float DeltaTime)
 #endif
 }
 
+FString AFloatingActor::FindSource(FString filename)
+{
+    UE_LOG(LogTemp, Warning, TEXT("FIND SOURCE ecd %s"), *FPaths::EngineContentDir());
+    UE_LOG(LogTemp, Warning, TEXT("FIND SOURCE ecd %s"), *FPaths::ProjectContentDir());
+    FString p = FPaths::Combine(FPaths::ProjectContentDir(), "k", filename);
+    UE_LOG(LogTemp, Warning, TEXT("FIND SOURCE %s %s"), *filename, *p);
+    return p;
+}

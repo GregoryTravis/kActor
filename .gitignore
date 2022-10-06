@@ -1,5 +1,7 @@
 Binaries/
-Content/
+Content/Collections/
+Content/Developers/
+Content/StarterContent/
 HowTo_Components.xcworkspace/
 Intermediate/
 Saved/
