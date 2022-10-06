@@ -91,6 +91,15 @@ FRotator frotator_to_FRotator(sexp frotator)
   return fr;
 }
 
+sexp GetGameTimeSinceCreation_delegate_sexp_native(sexp arglist)
+{
+    A(length(arglist) == 1);
+    sexp kactor_sexp = car(arglist);
+    AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
+    float t = kactor->GetGameTimeSinceCreation();
+    return SEXP_MKFLOAT(t);
+}
+
 sexp GetActorRotation_delegate_sexp_native(sexp arglist)
 {
   A(length(arglist) == 1);
@@ -161,11 +170,15 @@ AFloatingActor::AFloatingActor()
     sexp SetActorLocationAndRotation_delegate_sexp =
       mknative(&SetActorLocationAndRotation_delegate_sexp_native,
           strdup("SetActorLocationAndRotation_delegate_sexp_native"));
+    sexp GetGameTimeSinceCreation_delegate_sexp =
+      mknative(&GetGameTimeSinceCreation_delegate_sexp_native,
+          strdup("GetGameTimeSinceCreation_delegate_sexp_native"));
     sexp super = ke_call_constructor(super_class,
-        L4(kthis,
+        L5(kthis,
            GetActorLocation_delegate_sexp,
            GetActorRotation_delegate_sexp,
-           SetActorLocationAndRotation_delegate_sexp));
+           SetActorLocationAndRotation_delegate_sexp,
+           GetGameTimeSinceCreation_delegate_sexp));
 
     sexp clas = ke_exec_file("/Users/gmt/proj/kinterp/kactor.k");
     kdelegate = ke_call_constructor(clas, L1(super));
