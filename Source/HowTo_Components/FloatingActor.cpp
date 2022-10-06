@@ -7,15 +7,6 @@
 #include <string>
 #include "kembed.h"
 
-float AFloatingActor::NuTick(float DeltaTime)
-{
-    sexp result = ke_call_method(kdelegate, "tick", cons(SEXP_MKFLOAT(DeltaTime), nill));
-    float f = SEXP_GET_FLOAT(result);
-    KESD(result);
-    UE_LOG(LogTemp, Warning, TEXT("AAA NuTick result %f %d %lx %f %lx\n"), DeltaTime, (int)DeltaTime, result, f, SEXP_MKFLOAT(DeltaTime));
-    return f;
-}
-
 sexp FVector_to_fvector(AFloatingActor *kactor, FVector fv)
 {
     sexp r = ke_call_constructor(kactor->fvector_class,
@@ -161,8 +152,7 @@ void AFloatingActor::BeginPlay()
 void AFloatingActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    NuTick(DeltaTime);
-
+    ke_call_method(kdelegate, "tick", cons(SEXP_MKFLOAT(DeltaTime), nill));
 }
 
 FString AFloatingActor::FindSource(FString filename)

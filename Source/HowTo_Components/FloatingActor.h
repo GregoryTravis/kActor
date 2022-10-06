@@ -28,8 +28,6 @@ public:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 
-    float NuTick(float DeltaTime);
-
     // private: ?
     UPROPERTY()
     float heightScale;
