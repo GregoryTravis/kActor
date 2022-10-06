@@ -25,8 +25,11 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-    float SetLocation(float x, float y, float z);
-    
+
+    //FVector GetActorLocation();
+    //FRotator GetActorRotation();
+    //bool SetActorLocationAndRotation(FVector fv, FRotator fr);
+
     float NuTick(float DeltaTime);
 
     //UFUNCTION(BlueprintCallable)
@@ -36,5 +39,9 @@ public:
     UPROPERTY()
     float heightScale;
     
+    sexp fvector_class;
+    sexp frotator_class;
+
+  private:
     sexp kdelegate;
 };

@@ -7,36 +7,6 @@
 //#include "sexp.h"
 #include "kembed.h"
 
-float SetLocation_delegate(AFloatingActor *kactor, float x, float y, float z)
-{
-  return kactor->SetLocation(x, y, z);
-}
-
-sexp SetLocation_delegate_sexp_native(sexp arglist)
-{
-  sexp kactors, xs, ys, zs;
-  printf("HEYHEY\n");
-  KESD(arglist);
-  kactors = car(arglist);
-  xs = cadr(arglist);
-  ys = caddr(arglist);
-  zs = caddr(cdr(arglist));
-
-  AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactors);
-  sexp x = SEXP_GET_INTEGER(xs);
-  sexp y = SEXP_GET_INTEGER(ys);
-  sexp z = SEXP_GET_INTEGER(zs);
-  float n = SetLocation_delegate(kactor, (float)x, (float)y, (float)z);
-  sexp ns = SEXP_MKINT((int)n);
-  return ns;
-}
-
-float AFloatingActor::SetLocation(float x, float y, float z)
-{
-    UE_LOG(LogTemp, Warning, TEXT("AAA SetLocation %f %f %f\n"), x, y, z);
-  return x + y + z;
-}
-
 float AFloatingActor::NuTick(float DeltaTime)
 {
   sexp result = ke_call_method(kdelegate, "tick", cons(SEXP_MKINT((int)DeltaTime), nill));
@@ -44,6 +14,107 @@ float AFloatingActor::NuTick(float DeltaTime)
   KESD(result);
     UE_LOG(LogTemp, Warning, TEXT("AAA NuTick result %f %d %lx %f\n"), DeltaTime, (int)DeltaTime, result, f);
   return f;
+}
+
+#if 0
+FVector AFloatingActor::GetActorLocation()
+{
+  FVector fv = { 1.0, 2.0, 3.0 };
+  return fv;
+}
+
+FRotator AFloatingActor::GetActorRotation()
+{
+  FRotator fr = { 4.0, 5.0, 6.0 };
+  return fr;
+}
+
+bool AFloatingActor::SetActorLocationAndRotation(FVector fv, FRotator fr)
+{
+  printf("SALAR got %f %f %f %f %f %f\n",
+      fv.X, fv.Y, fv.Z,
+      fr.Pitch, fr.Roll, fr.Yaw);
+  return true;
+}
+#endif
+
+sexp FVector_to_fvector(AFloatingActor *kactor, FVector fv)
+{
+  sexp r = ke_call_constructor(kactor->fvector_class,
+    L3(SEXP_MKINT((int)fv.X),
+       SEXP_MKINT((int)fv.Y),
+       SEXP_MKINT((int)fv.Z)));
+  return r;
+}
+
+sexp FRotator_to_frotator(AFloatingActor *kactor, FRotator fr)
+{
+  return ke_call_constructor(kactor->frotator_class,
+    L3(SEXP_MKINT((int)fr.Pitch),
+       SEXP_MKINT((int)fr.Roll),
+       SEXP_MKINT((int)fr.Yaw)));
+}
+
+FVector fvector_to_FVector(sexp fvector)
+{
+  sexp x = ke_get_field(fvector, "x");
+  sexp y = ke_get_field(fvector, "y");
+  sexp z = ke_get_field(fvector, "z");
+  FVector fv = {
+    (float)SEXP_GET_INTEGER(x),
+    (float)SEXP_GET_INTEGER(y),
+    (float)SEXP_GET_INTEGER(z)
+  };
+  return fv;
+}
+
+FRotator frotator_to_FRotator(sexp frotator)
+{
+  sexp pitch = ke_get_field(frotator, "pitch");
+  sexp roll = ke_get_field(frotator, "roll");
+  sexp yaw = ke_get_field(frotator, "yaw");
+  FRotator fr = {
+    (float)SEXP_GET_INTEGER(pitch),
+    (float)SEXP_GET_INTEGER(roll),
+    (float)SEXP_GET_INTEGER(yaw)
+  };
+  return fr;
+}
+
+sexp GetActorRotation_delegate_sexp_native(sexp arglist)
+{
+  A(length(arglist) == 1);
+
+  sexp kactor_sexp = car(arglist);
+  AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
+  FRotator rotation = kactor->GetActorRotation();
+  printf("Returning frotator\n");
+  return FRotator_to_frotator(kactor, rotation);
+}
+
+sexp GetActorLocation_delegate_sexp_native(sexp arglist)
+{
+  A(length(arglist) == 1);
+
+  sexp kactor_sexp = car(arglist);
+  AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
+  FVector location = kactor->GetActorLocation();
+  printf("Returning fvector\n");
+  return FVector_to_fvector(kactor, location);
+}
+
+sexp SetActorLocationAndRotation_delegate_sexp_native(sexp arglist)
+{
+  A(length(arglist) == 3);
+
+  sexp kactor_sexp = car(arglist);
+  sexp location = cadr(arglist);
+  sexp rotation = caddr(arglist);
+  printf("OOOO %d %d\n", SEXP_TYPE(location), SEXP_TYPE(rotation));
+  AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
+  FVector fv = fvector_to_FVector(location);
+  FRotator fr = frotator_to_FRotator(rotation);
+  return kactor->SetActorLocationAndRotation(fv, fr);
 }
 
 // Sets default values
@@ -67,21 +138,31 @@ AFloatingActor::AFloatingActor()
         VisualMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
     }
 
+    /*
     ke_init();
 
     sexp super_class = ke_exec_file("/Users/gmt/proj/kinterp/super.k");
-    UE_LOG(LogTemp, Warning, TEXT("AAA SUPER %lx\n"), super_class);
     KESD(super_class);
     sexp kthis = SEXP_MKOBJ(this);
-    sexp SetLocation_delegate_sexp =
-      mknative(&SetLocation_delegate_sexp_native, strdup("SetLocation_delegate_sexp_native"));
+
+    sexp GetActorLocation_delegate_sexp =
+      mknative(&GetActorLocation_delegate_sexp_native, strdup("GetActorLocation_delegate_sexp_native"));
+    sexp GetActorRotation_delegate_sexp =
+      mknative(&GetActorRotation_delegate_sexp_native, strdup("GetActorRotation_delegate_sexp_native"));
+    sexp SetActorLocationAndRotation_delegate_sexp =
+      mknative(&SetActorLocationAndRotation_delegate_sexp_native,
+          strdup("SetActorLocationAndRotation_delegate_sexp_native"));
     sexp super = ke_call_constructor(super_class,
-        cons(kthis, cons(SetLocation_delegate_sexp, nill)));
+        L4(kthis,
+           GetActorLocation_delegate_sexp,
+           GetActorRotation_delegate_sexp,
+           SetActorLocationAndRotation_delegate_sexp));
 
     sexp clas = ke_exec_file("/Users/gmt/proj/kinterp/kactor.k");
-    UE_LOG(LogTemp, Warning, TEXT("AAA CLAS %lx\n"), clas);
-    kdelegate = ke_call_constructor(clas, cons(super, nill));
-    //UE_LOG(LogTemp, Warning, TEXT("DELEGATE %lp"), kdelegate);
+    kdelegate = ke_call_constructor(clas, L1(super));
+    fvector_class = ke_exec_file("/Users/gmt/proj/kinterp/fvector.k");
+    frotator_class = ke_exec_file("/Users/gmt/proj/kinterp/frotator.k");
+     */
 }
 
 // Called when the game starts or when spawned
@@ -91,27 +172,28 @@ void AFloatingActor::BeginPlay()
     
 }
 
-/*
-void AFloatingActor::SALAR()
-{
-}
- */
-
 // Called every frame
 void AFloatingActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-    NuTick(DeltaTime);
-    
+    //NuTick(DeltaTime);
+
+//#if 0
     FVector NewLocation = GetActorLocation();
     FRotator NewRotation = GetActorRotation();
+    UE_LOG(LogTemp, Warning, TEXT("BBBB0 %f %f %f %f %f %f"), NewLocation.X, NewLocation.Y, NewLocation.Z, NewRotation.Pitch, NewRotation.Roll, NewRotation.Yaw);
     float RunningTime = GetGameTimeSinceCreation();
     float DeltaHeight = (FMath::Sin(RunningTime + DeltaTime) - FMath::Sin(RunningTime));
     NewLocation.Z += DeltaHeight * this->heightScale;       //Scale our height by a factor of 20
     float DeltaRotation = DeltaTime * 20.0f;    //Rotate by 20 degrees per second
     NewRotation.Yaw += DeltaRotation;
-    //SetActorLocationAndRotation(NewLocation, NewRotation);
+    UE_LOG(LogTemp, Warning, TEXT("BBBB1 %f %f %f %f %f %f"), NewLocation.X, NewLocation.Y, NewLocation.Z, NewRotation.Pitch, NewRotation.Roll, NewRotation.Yaw);
+    SetActorLocationAndRotation(NewLocation, NewRotation);
+    UE_LOG(LogTemp, Warning, TEXT("BBBB2 %f %f %f %f %f %f"), NewLocation.X, NewLocation.Y, NewLocation.Z, NewRotation.Pitch, NewRotation.Roll, NewRotation.Yaw);
+    FVector NewLocation2 = GetActorLocation();
+    FRotator NewRotation2 = GetActorRotation();
+    UE_LOG(LogTemp, Warning, TEXT("BBBB3 %f %f %f %f %f %f"), NewLocation2.X, NewLocation2.Y, NewLocation2.Z, NewRotation2.Pitch, NewRotation2.Roll, NewRotation2.Yaw);
 
     UClass *uc = this->StaticClass();
     
@@ -198,5 +280,6 @@ void AFloatingActor::Tick(float DeltaTime)
         }
     }
     //UE_LOG(LogTemp, Warning, TEXT("Some warning message") );
+//#endif
 }
 
