@@ -88,7 +88,9 @@ sexp SetActorLocationAndRotation_delegate_sexp_native(sexp arglist)
     FVector fv = fvector_to_FVector(location);
     FRotator fr = frotator_to_FRotator(rotation);
     UE_LOG(LogTemp, Warning, TEXT("AAA SALAR %f %f %f %f %f %f"), fv.X, fv.Y, fv.Z, fr.Pitch, fr.Roll, fr.Yaw);
-    return kactor->SetActorLocationAndRotation(fv, fr);
+    bool b = kactor->SetActorLocationAndRotation(fv, fr);
+    sexp b_sexp = SEXP_MKINT((int)b);
+    return b_sexp;
 }
 
 // Sets default values
@@ -157,9 +159,6 @@ void AFloatingActor::Tick(float DeltaTime)
 
 FString AFloatingActor::FindSource(FString filename)
 {
-    UE_LOG(LogTemp, Warning, TEXT("FIND SOURCE ecd %s"), *FPaths::EngineContentDir());
-    UE_LOG(LogTemp, Warning, TEXT("FIND SOURCE ecd %s"), *FPaths::ProjectContentDir());
     FString p = FPaths::Combine(FPaths::ProjectContentDir(), "k", filename);
-    UE_LOG(LogTemp, Warning, TEXT("FIND SOURCE %s %s"), *filename, *p);
     return p;
 }
