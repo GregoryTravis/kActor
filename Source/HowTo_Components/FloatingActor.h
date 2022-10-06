@@ -28,14 +28,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-    //FVector GetActorLocation();
-    //FRotator GetActorRotation();
-    //bool SetActorLocationAndRotation(FVector fv, FRotator fr);
-
     float NuTick(float DeltaTime);
-
-    //UFUNCTION(BlueprintCallable)
-    //virtual void SALAR();
     
 // private: ?
     UPROPERTY()
