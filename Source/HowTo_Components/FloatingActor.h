@@ -10,33 +10,33 @@
 UCLASS()
 class HOWTO_COMPONENTS_API AFloatingActor : public AActor
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+    
 public:	
-	// Sets default values for this actor's properties
-	AFloatingActor();
-
+    // Sets default values for this actor's properties
+    AFloatingActor();
+    
     UPROPERTY(VisibleAnywhere)
     UStaticMeshComponent* VisualMesh;
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+    
     FString FindSource(FString filename);
     
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+    
     float NuTick(float DeltaTime);
     
-// private: ?
+    // private: ?
     UPROPERTY()
     float heightScale;
     
     sexp fvector_class;
     sexp frotator_class;
-
-  private:
+    
+private:
     sexp kdelegate;
 };
