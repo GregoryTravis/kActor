@@ -12,6 +12,7 @@ sexp GetGameTimeSinceCreation_delegate_sexp_native(sexp arglist);
 sexp GetActorRotation_delegate_sexp_native(sexp arglist);
 sexp GetActorLocation_delegate_sexp_native(sexp arglist);
 sexp SetActorLocationAndRotation_delegate_sexp_native(sexp arglist);
+sexp GetHeightScale_delegate_sexp_native(sexp arglist);
 sexp FVector_to_fvector(AFloatingActor *kactor, FVector fv);
 sexp FRotator_to_frotator(AFloatingActor *kactor, FRotator fr);
 FVector fvector_to_FVector(sexp fvector);
@@ -58,12 +59,16 @@ AFloatingActor::AFloatingActor()
     sexp GetGameTimeSinceCreation_delegate_sexp =
     mknative(&GetGameTimeSinceCreation_delegate_sexp_native,
              strdup("GetGameTimeSinceCreation_delegate_sexp_native"));
+    sexp GetHeightScale_delegate_sexp =
+    mknative(&GetHeightScale_delegate_sexp_native,
+             strdup("GetHeightScale_delegate_sexp_native"));
     sexp super = ke_call_constructor(super_class,
-                                     L5(kthis,
+                                     L6(kthis,
                                         GetActorLocation_delegate_sexp,
                                         GetActorRotation_delegate_sexp,
                                         SetActorLocationAndRotation_delegate_sexp,
-                                        GetGameTimeSinceCreation_delegate_sexp));
+                                        GetGameTimeSinceCreation_delegate_sexp,
+                                        GetHeightScale_delegate_sexp));
 
     // Set up 'kactor', the K implementation of this class
     sexp clas = ke_exec_file(TCHAR_TO_ANSI(*FindSource("kactor.k")));
@@ -131,6 +136,20 @@ sexp SetActorLocationAndRotation_delegate_sexp_native(sexp arglist)
     bool b = kactor->SetActorLocationAndRotation(fv, fr);
     sexp b_sexp = SEXP_MKINT((int)b);
     return b_sexp;
+}
+
+float AFloatingActor::GetHeightScale()
+{
+    return heightScale;
+}
+
+sexp GetHeightScale_delegate_sexp_native(sexp arglist)
+{
+    A(length(arglist) == 1);
+
+    sexp kactor_sexp = car(arglist);
+    AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
+    return SEXP_MKFLOAT(kactor->GetHeightScale());
 }
 
 // Utility to convert FVectors between C++ and K representations

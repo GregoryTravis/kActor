@@ -5,17 +5,20 @@ class super
   public var getActorRotation_delegate = nill;
   public var setActorLocationAndRotation_delegate = nill;
   public var getGameTimeSinceCreation_delegate = nill;
+  public var getHeightScale_delegate = nill;
 
   public fun super(_kactor,
                    _getActorLocation_delegate,
                    _getActorRotation_delegate,
                    _setActorLocationAndRotation_delegate,
-                   _getGameTimeSinceCreation_delegate) {
+                   _getGameTimeSinceCreation_delegate,
+                   _getHeightScale_delegate) {
     kactor = _kactor;
     getActorLocation_delegate = _getActorLocation_delegate;
     getActorRotation_delegate = _getActorRotation_delegate;
     setActorLocationAndRotation_delegate = _setActorLocationAndRotation_delegate;
     getGameTimeSinceCreation_delegate = _getGameTimeSinceCreation_delegate;
+    getHeightScale_delegate = _getHeightScale_delegate;
   }
 
   public fun getActorLocation() {
@@ -32,6 +35,10 @@ class super
 
   public fun getGameTimeSinceCreation() {
     return getGameTimeSinceCreation_delegate(kactor);
+  }
+
+  public fun getHeightScale() {
+    return getHeightScale_delegate(kactor);
   }
 }
 

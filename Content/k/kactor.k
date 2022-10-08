@@ -11,7 +11,8 @@ class kactor
 
     var elapsed = super.getGameTimeSinceCreation();
     var deltaHeight = sin(elapsed + deltaTime) - sin(elapsed);
-    current_location.z = current_location.z + deltaHeight * 20.0;
+    var heightScale = super.getHeightScale();
+    current_location.z = current_location.z + deltaHeight * heightScale;
 
     var current_rotation = super.getActorRotation();
     current_rotation.yaw = current_rotation.yaw + (deltaTime * 20.0);

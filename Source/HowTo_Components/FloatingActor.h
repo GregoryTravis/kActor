@@ -29,8 +29,10 @@ public:
     virtual void Tick(float DeltaTime) override;
 
     // private: ?
-    UPROPERTY()
+    UPROPERTY(EditAnywhere, Category = Movement)
     float heightScale;
+
+    float GetHeightScale();
 
     sexp fvector_class;
     sexp frotator_class;
