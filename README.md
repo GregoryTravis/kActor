@@ -12,7 +12,7 @@ kActor is a proof-of-concept integration between Unreal Engine and a [dynamicall
 * Superclass bindings
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/GregoryTravis/kActor/master/screenshots/kActor.mp4">
+  <img src="https://raw.githubusercontent.com/GregoryTravis/kActor/master/screenshots/kActor.gif">
 </p>
 
 The demo project is based on a simple Unreal tutorial. The object movement was rewritten in k:
