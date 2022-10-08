@@ -18,15 +18,26 @@ public:
 
     UPROPERTY(VisibleAnywhere)
     UStaticMeshComponent* VisualMesh;
+    
+    // Need to be public for C++/K bridge
+    
+    float GetHeightScale();
+    float GetRotationSpeed();
+
+    sexp fvector_class;
+    sexp frotator_class;
+
 protected:
+    
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 
     FString FindSource(FString filename);
 
-public:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
+
+private:
 
     UPROPERTY(EditAnywhere, Category = Movement)
     float heightScale;
@@ -34,12 +45,5 @@ public:
     UPROPERTY(EditAnywhere, Category = Movement)
     float rotationSpeed;
 
-    float GetHeightScale();
-    float GetRotationSpeed();
-
-    sexp fvector_class;
-    sexp frotator_class;
-
-private:
     sexp kdelegate;
 };
