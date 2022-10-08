@@ -11,6 +11,8 @@ kActor is a proof-of-concept integration between Unreal Engine and a [dynamicall
 * C++ <-> k data structure conversion
 * Superclass bindings
 
+k source is read from the Content/k directory.
+
 ## Demo
 
 <p align="center">
