@@ -13,9 +13,9 @@ public class HowTo_Components : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
                 PublicIncludePaths.AddRange(new string[] {
-                    "/Users/gmt/proj/kinterp/src"
+                    "/Users/gmt/proj/k/src"
                 });
-                PublicAdditionalLibraries.Add("/Users/gmt/proj/kinterp/src/embed.a");
+                PublicAdditionalLibraries.Add("/Users/gmt/proj/k/src/kembed.a");
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
