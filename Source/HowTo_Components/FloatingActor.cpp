@@ -13,6 +13,7 @@ sexp GetActorRotation_delegate_sexp_native(sexp arglist);
 sexp GetActorLocation_delegate_sexp_native(sexp arglist);
 sexp SetActorLocationAndRotation_delegate_sexp_native(sexp arglist);
 sexp GetHeightScale_delegate_sexp_native(sexp arglist);
+sexp GetRotationSpeed_delegate_sexp_native(sexp arglist);
 sexp FVector_to_fvector(AFloatingActor *kactor, FVector fv);
 sexp FRotator_to_frotator(AFloatingActor *kactor, FRotator fr);
 FVector fvector_to_FVector(sexp fvector);
@@ -25,7 +26,8 @@ AFloatingActor::AFloatingActor()
     // Standard actor setup
     PrimaryActorTick.bCanEverTick = true;
 
-    this->heightScale = 20.0;
+    heightScale = 20.0;
+    rotationSpeed = 20.0;
 
     VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
     VisualMesh->SetupAttachment(RootComponent);
@@ -62,13 +64,17 @@ AFloatingActor::AFloatingActor()
     sexp GetHeightScale_delegate_sexp =
     mknative(&GetHeightScale_delegate_sexp_native,
              strdup("GetHeightScale_delegate_sexp_native"));
+    sexp GetRotationSpeed_delegate_sexp =
+    mknative(&GetRotationSpeed_delegate_sexp_native,
+             strdup("GetRotationSpeed_delegate_sexp_native"));
     sexp super = ke_call_constructor(super_class,
-                                     L6(kthis,
+                                     L7(kthis,
                                         GetActorLocation_delegate_sexp,
                                         GetActorRotation_delegate_sexp,
                                         SetActorLocationAndRotation_delegate_sexp,
                                         GetGameTimeSinceCreation_delegate_sexp,
-                                        GetHeightScale_delegate_sexp));
+                                        GetHeightScale_delegate_sexp,
+                                        GetRotationSpeed_delegate_sexp));
 
     // Set up 'kactor', the K implementation of this class
     sexp clas = ke_exec_file(TCHAR_TO_ANSI(*FindSource("kactor.k")));
@@ -143,6 +149,11 @@ float AFloatingActor::GetHeightScale()
     return heightScale;
 }
 
+float AFloatingActor::GetRotationSpeed()
+{
+    return rotationSpeed;
+}
+
 sexp GetHeightScale_delegate_sexp_native(sexp arglist)
 {
     A(length(arglist) == 1);
@@ -150,6 +161,15 @@ sexp GetHeightScale_delegate_sexp_native(sexp arglist)
     sexp kactor_sexp = car(arglist);
     AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
     return SEXP_MKFLOAT(kactor->GetHeightScale());
+}
+
+sexp GetRotationSpeed_delegate_sexp_native(sexp arglist)
+{
+    A(length(arglist) == 1);
+
+    sexp kactor_sexp = car(arglist);
+    AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
+    return SEXP_MKFLOAT(kactor->GetRotationSpeed());
 }
 
 // Utility to convert FVectors between C++ and K representations

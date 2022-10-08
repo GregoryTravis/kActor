@@ -28,11 +28,14 @@ public:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 
-    // private: ?
     UPROPERTY(EditAnywhere, Category = Movement)
     float heightScale;
 
+    UPROPERTY(EditAnywhere, Category = Movement)
+    float rotationSpeed;
+
     float GetHeightScale();
+    float GetRotationSpeed();
 
     sexp fvector_class;
     sexp frotator_class;

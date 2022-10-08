@@ -15,7 +15,8 @@ class kactor
     current_location.z = current_location.z + deltaHeight * heightScale;
 
     var current_rotation = super.getActorRotation();
-    current_rotation.yaw = current_rotation.yaw + (deltaTime * 20.0);
+    var rotationSpeed = super.getRotationSpeed();
+    current_rotation.yaw = current_rotation.yaw + (deltaTime * rotationSpeed);
 
     super.setActorLocationAndRotation(current_location, current_rotation);
 
