@@ -34,8 +34,6 @@ AFloatingActor::AFloatingActor()
 
     static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeVisualAsset(TEXT("/Game/StarterContent/Shapes/Shape_Cube.Shape_Cube"));
 
-    UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), ( CubeVisualAsset.Succeeded() ? TEXT("true") : TEXT("false") ));
-
     if (CubeVisualAsset.Succeeded())
     {
         VisualMesh->SetStaticMesh(CubeVisualAsset.Object);
@@ -138,7 +136,6 @@ sexp SetActorLocationAndRotation_delegate_sexp_native(sexp arglist)
     AFloatingActor *kactor = (AFloatingActor*)SEXP_GET_OBJ(kactor_sexp);
     FVector fv = fvector_to_FVector(location);
     FRotator fr = frotator_to_FRotator(rotation);
-    UE_LOG(LogTemp, Warning, TEXT("AAA SALAR %f %f %f %f %f %f"), fv.X, fv.Y, fv.Z, fr.Pitch, fr.Roll, fr.Yaw);
     bool b = kactor->SetActorLocationAndRotation(fv, fr);
     sexp b_sexp = SEXP_MKINT((int)b);
     return b_sexp;
