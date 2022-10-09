@@ -45,8 +45,10 @@ AFloatingActor::AFloatingActor()
 
     // Create K superclass
     sexp super_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("super.k")));
-    KESD(super_class);
+    ke_gc_pin(super_class);
+    //KESD(super_class);
     sexp kthis = SEXP_MKOBJ(this);
+    ke_gc_pin(kthis);
 
     // Create superclass delegates that allow K to call back to C++
     sexp GetActorLocation_delegate_sexp =
@@ -73,14 +75,19 @@ AFloatingActor::AFloatingActor()
                                         GetGameTimeSinceCreation_delegate_sexp,
                                         GetHeightScale_delegate_sexp,
                                         GetRotationSpeed_delegate_sexp));
+    ke_gc_pin(super);
 
     // Set up 'kactor', the K implementation of this class
     sexp clas = ke_exec_file(TCHAR_TO_ANSI(*FindSource("kactor.k")));
+    ke_gc_pin(clas);
     kdelegate = ke_call_constructor(clas, L1(super));
-    
+    ke_gc_pin(kdelegate);
+
     // Set up utility classes
     fvector_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("fvector.k")));
+    ke_gc_pin(fvector_class);
     frotator_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("frotator.k")));
+    ke_gc_pin(frotator_class);
 }
 
 // Called when the game starts or when spawned
@@ -95,6 +102,8 @@ void AFloatingActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     ke_call_method(kdelegate, "tick", cons(SEXP_MKFLOAT(DeltaTime), nill));
+    int count = ke_gc();
+    UE_LOG(LogTemp, Warning, TEXT("GC: %d"), count);
 }
 
 sexp GetGameTimeSinceCreation_delegate_sexp_native(sexp arglist)

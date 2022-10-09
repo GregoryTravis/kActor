@@ -19,12 +19,7 @@ class kactor
     current_rotation.yaw = current_rotation.yaw + (deltaTime * rotationSpeed);
 
     super.setActorLocationAndRotation(current_location, current_rotation);
-
-    return 55.0;
-  }
-
-  public fun setLocation(x, y, z) {
-    return super.setLocation(x, y, z);
+    return nill;
   }
 }
 
