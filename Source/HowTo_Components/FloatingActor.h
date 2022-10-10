@@ -37,6 +37,9 @@ protected:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 
+    // Unpins k objects
+    virtual void FinishDestroy() override;
+
 private:
 
     UPROPERTY(EditAnywhere, Category = Movement)
@@ -46,4 +49,8 @@ private:
     float rotationSpeed;
 
     sexp kdelegate;
+    sexp super_class;
+    sexp kthis;
+    sexp super;
+    sexp clas;
 };

@@ -44,10 +44,10 @@ AFloatingActor::AFloatingActor()
     ke_init();
 
     // Create K superclass
-    sexp super_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("super.k")));
+    super_class = ke_exec_file(TCHAR_TO_ANSI(*FindSource("super.k")));
     ke_gc_pin(super_class);
     //KESD(super_class);
-    sexp kthis = SEXP_MKOBJ(this);
+    kthis = SEXP_MKOBJ(this);
     ke_gc_pin(kthis);
 
     // Create superclass delegates that allow K to call back to C++
@@ -67,7 +67,7 @@ AFloatingActor::AFloatingActor()
     sexp GetRotationSpeed_delegate_sexp =
     mknative(&GetRotationSpeed_delegate_sexp_native,
              strdup("GetRotationSpeed_delegate_sexp_native"));
-    sexp super = ke_call_constructor(super_class,
+    super = ke_call_constructor(super_class,
                                      L7(kthis,
                                         GetActorLocation_delegate_sexp,
                                         GetActorRotation_delegate_sexp,
@@ -78,7 +78,7 @@ AFloatingActor::AFloatingActor()
     ke_gc_pin(super);
 
     // Set up 'kactor', the K implementation of this class
-    sexp clas = ke_exec_file(TCHAR_TO_ANSI(*FindSource("kactor.k")));
+    clas = ke_exec_file(TCHAR_TO_ANSI(*FindSource("kactor.k")));
     ke_gc_pin(clas);
     kdelegate = ke_call_constructor(clas, L1(super));
     ke_gc_pin(kdelegate);
@@ -228,4 +228,24 @@ FString AFloatingActor::FindSource(FString filename)
 {
     FString p = FPaths::Combine(FPaths::ProjectContentDir(), "k", filename);
     return p;
+}
+
+void AFloatingActor::FinishDestroy()
+{
+    ke_gc_unpin(super_class);
+    super_class = 0;
+    ke_gc_unpin(kthis);
+    kthis = 0;
+    ke_gc_unpin(super);
+    super = 0;
+    ke_gc_unpin(clas);
+    clas = 0;
+    ke_gc_unpin(kdelegate);
+    kdelegate = 0;
+    ke_gc_unpin(fvector_class);
+    fvector_class = 0;
+    ke_gc_unpin(frotator_class);
+    frotator_class = 0;
+
+    Super::FinishDestroy();
 }
