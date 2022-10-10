@@ -7,6 +7,8 @@
 #include <string>
 #include "kembed.h"
 
+#define GC_FREQUENCY 100
+
 // Forward decls
 sexp GetGameTimeSinceCreation_delegate_sexp_native(sexp arglist);
 sexp GetActorRotation_delegate_sexp_native(sexp arglist);
@@ -25,6 +27,8 @@ AFloatingActor::AFloatingActor()
 {
     // Standard actor setup
     PrimaryActorTick.bCanEverTick = true;
+
+    tick_index = 0;
 
     heightScale = 20.0;
     rotationSpeed = 20.0;
@@ -68,13 +72,13 @@ AFloatingActor::AFloatingActor()
     mknative(&GetRotationSpeed_delegate_sexp_native,
              strdup("GetRotationSpeed_delegate_sexp_native"));
     super = ke_call_constructor(super_class,
-                                     L7(kthis,
-                                        GetActorLocation_delegate_sexp,
-                                        GetActorRotation_delegate_sexp,
-                                        SetActorLocationAndRotation_delegate_sexp,
-                                        GetGameTimeSinceCreation_delegate_sexp,
-                                        GetHeightScale_delegate_sexp,
-                                        GetRotationSpeed_delegate_sexp));
+                                L7(kthis,
+                                   GetActorLocation_delegate_sexp,
+                                   GetActorRotation_delegate_sexp,
+                                   SetActorLocationAndRotation_delegate_sexp,
+                                   GetGameTimeSinceCreation_delegate_sexp,
+                                   GetHeightScale_delegate_sexp,
+                                   GetRotationSpeed_delegate_sexp));
     ke_gc_pin(super);
 
     // Set up 'kactor', the K implementation of this class
@@ -94,7 +98,6 @@ AFloatingActor::AFloatingActor()
 void AFloatingActor::BeginPlay()
 {
     Super::BeginPlay();
-
 }
 
 // Called every frame
@@ -102,8 +105,16 @@ void AFloatingActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     ke_call_method(kdelegate, "tick", cons(SEXP_MKFLOAT(DeltaTime), nill));
-    int count = ke_gc();
-    UE_LOG(LogTemp, Warning, TEXT("GC: %d"), count);
+    GC();
+}
+
+void AFloatingActor::GC()
+{
+    if ((tick_index % GC_FREQUENCY) == 0) {
+        int count = ke_gc();
+        UE_LOG(LogTemp, Warning, TEXT("GC: %d"), count);
+    }
+    tick_index++;
 }
 
 sexp GetGameTimeSinceCreation_delegate_sexp_native(sexp arglist)
@@ -232,20 +243,22 @@ FString AFloatingActor::FindSource(FString filename)
 
 void AFloatingActor::FinishDestroy()
 {
-    ke_gc_unpin(super_class);
-    super_class = 0;
-    ke_gc_unpin(kthis);
-    kthis = 0;
-    ke_gc_unpin(super);
-    super = 0;
-    ke_gc_unpin(clas);
-    clas = 0;
-    ke_gc_unpin(kdelegate);
-    kdelegate = 0;
-    ke_gc_unpin(fvector_class);
-    fvector_class = 0;
-    ke_gc_unpin(frotator_class);
-    frotator_class = 0;
+    /*
+     ke_gc_unpin(super_class);
+     super_class = 0;
+     ke_gc_unpin(kthis);
+     kthis = 0;
+     ke_gc_unpin(super);
+     super = 0;
+     ke_gc_unpin(clas);
+     clas = 0;
+     ke_gc_unpin(kdelegate);
+     kdelegate = 0;
+     ke_gc_unpin(fvector_class);
+     fvector_class = 0;
+     ke_gc_unpin(frotator_class);
+     frotator_class = 0;
+     */
 
     Super::FinishDestroy();
 }

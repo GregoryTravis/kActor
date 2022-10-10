@@ -37,6 +37,9 @@ protected:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 
+    // k garbage collection
+    void GC();
+
     // Unpins k objects
     virtual void FinishDestroy() override;
 
@@ -53,4 +56,6 @@ private:
     sexp kthis;
     sexp super;
     sexp clas;
+
+    int tick_index;
 };
