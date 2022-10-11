@@ -39,6 +39,7 @@ protected:
 
     // k garbage collection
     void GC();
+    void GCSometimes();
 
     // Unpins k objects
     virtual void FinishDestroy() override;

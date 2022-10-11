@@ -105,14 +105,19 @@ void AFloatingActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     ke_call_method(kdelegate, "tick", cons(SEXP_MKFLOAT(DeltaTime), nill));
-    GC();
+
+    GCSometimes();
 }
 
 void AFloatingActor::GC()
 {
+    int count = ke_gc();
+    UE_LOG(LogTemp, Warning, TEXT("GC: %d %d %d"), count, tick_index, GC_FREQUENCY);
+}
+void AFloatingActor::GCSometimes()
+{
     if ((tick_index % GC_FREQUENCY) == 0) {
-        int count = ke_gc();
-        UE_LOG(LogTemp, Warning, TEXT("GC: %d"), count);
+        GC();
     }
     tick_index++;
 }
@@ -243,22 +248,39 @@ FString AFloatingActor::FindSource(FString filename)
 
 void AFloatingActor::FinishDestroy()
 {
-    /*
-     ke_gc_unpin(super_class);
-     super_class = 0;
-     ke_gc_unpin(kthis);
-     kthis = 0;
-     ke_gc_unpin(super);
-     super = 0;
-     ke_gc_unpin(clas);
-     clas = 0;
-     ke_gc_unpin(kdelegate);
-     kdelegate = 0;
-     ke_gc_unpin(fvector_class);
-     fvector_class = 0;
-     ke_gc_unpin(frotator_class);
-     frotator_class = 0;
-     */
+    UE_LOG(LogTemp, Warning, TEXT("GC final before"));
+    GC();
+    if (super_class != 0) {
+        ke_gc_unpin(super_class);
+        super_class = 0;
+        UE_LOG(LogTemp, Warning, TEXT("GC unpin super_class"));
+    }
+    if (kthis !=0) {
+        ke_gc_unpin(kthis);
+        kthis = 0;
+    }
+    if (super != 0) {
+        ke_gc_unpin(super);
+        super = 0;
+    }
+    if (clas != 0) {
+        ke_gc_unpin(clas);
+        clas = 0;
+    }
+    if (kdelegate != 0) {
+        ke_gc_unpin(kdelegate);
+        kdelegate = 0;
+    }
+    if (fvector_class != 0) {
+        ke_gc_unpin(fvector_class);
+        fvector_class = 0;
+    }
+    if (frotator_class != 0) {
+        ke_gc_unpin(frotator_class);
+        frotator_class = 0;
+    }
+    UE_LOG(LogTemp, Warning, TEXT("GC final before"));
+    GC();
 
     Super::FinishDestroy();
 }

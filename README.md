@@ -7,7 +7,7 @@ kActor is a proof-of-concept integration between Unreal Engine and a [dynamicall
 
 * Boilerplate bridge code for specific Actor methods (Tick(), etc.)
 * Two-way bridge code (C++ -> k, k -> C++)
-* Integration with the Unreal garbage bollector **\[in progress\]**
+* Garbage collector integration with Unreal object lifecycle
 * C++ <-> k data structure conversion
 * Superclass bindings
 
